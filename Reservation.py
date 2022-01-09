@@ -4,8 +4,7 @@ from time import sleep
 
 def Booking():
     weeks = int(input('Weeks? '))
-    browser = webdriver.Edge(
-        "/Users/Dell/AppData/Local/Programs/Python/Python39/msedgedriver.exe")
+    browser = webdriver.Edge()
     browser.get("http://extranet.oppilastalo.fi/")
     browser.find_element_by_xpath(
         '/html/body/div/form/table/tbody/tr[3]/td[2]/input').send_keys('Username')
