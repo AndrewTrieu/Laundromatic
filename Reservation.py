@@ -8,9 +8,9 @@ def Booking():
         "/Users/Dell/AppData/Local/Programs/Python/Python39/msedgedriver.exe")
     browser.get("http://extranet.oppilastalo.fi/")
     browser.find_element_by_xpath(
-        '/html/body/div/form/table/tbody/tr[3]/td[2]/input').send_keys('10126/3005')
+        '/html/body/div/form/table/tbody/tr[3]/td[2]/input').send_keys('Username')
     browser.find_element_by_xpath(
-        '/html/body/div/form/table/tbody/tr[4]/td[2]/input').send_keys('clouE1c1')
+        '/html/body/div/form/table/tbody/tr[4]/td[2]/input').send_keys('Password')
     browser.find_element_by_xpath(
         '/html/body/div/form/table/tbody/tr[5]/td[1]/input').click()
     sleep(3)
