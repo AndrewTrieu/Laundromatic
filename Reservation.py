@@ -36,6 +36,7 @@ def Booking():
                         continue
                     except:
                         print('Ei näe enempää viikkoja.')
+                        return
         week += 1
 
 
