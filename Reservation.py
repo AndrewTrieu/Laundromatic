@@ -5,21 +5,7 @@ except ImportError:
     os.system('pip install selenium')
     from selenium import webdriver
 from time import sleep
-timetable = ['/html/body/blockquote/table/tbody/tr[3]/td[*]/input',
-             '/html/body/blockquote/table/tbody/tr[4]/td[*]/input',
-             '/html/body/blockquote/table/tbody/tr[5]/td[*]/input',
-             '/html/body/blockquote/table/tbody/tr[6]/td[*]/input',
-             '/html/body/blockquote/table/tbody/tr[7]/td[*]/input',
-             '/html/body/blockquote/table/tbody/tr[8]/td[*]/input',
-             '/html/body/blockquote/table/tbody/tr[9]/td[*]/input',
-             '/html/body/blockquote/table/tbody/tr[10]/td[*]/input',
-             '/html/body/blockquote/table/tbody/tr[11]/td[*]/input',
-             '/html/body/blockquote/table/tbody/tr[12]/td[*]/input',
-             '/html/body/blockquote/table/tbody/tr[13]/td[*]/input',
-             '/html/body/blockquote/table/tbody/tr[14]/td[*]/input',
-             '/html/body/blockquote/table/tbody/tr[15]/td[*]/input',
-             '/html/body/blockquote/table/tbody/tr[16]/td[*]/input',
-             '/html/body/blockquote/table/tbody/tr[17]/td[*]/input']
+timetable = '/html/body/blockquote/table/tbody/tr[#]/td[*]/input'
 
 
 def chooseTime():
@@ -42,7 +28,7 @@ def chooseTime():
     while True:
         choiceTime = input('\nYour choice: ')
         if choiceTime in ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15']:
-            return int(choiceTime)-1
+            return int(choiceTime)+2
         else:
             print("\nInvalid choice.")
             continue
@@ -51,29 +37,38 @@ def chooseTime():
 def chooseDay(x):
     slots = []
     for i in range(x):
-        print('\n Choose a day:')
-        print('Sunday            1')
-        print('Monday            2')
-        print('Tuesday           3')
-        print('Wednesday         4')
-        print('Thursday          5')
-        print('Friday            6')
-        print('Saturday          7')
         while True:
+            print('\n Choose a day:')
+            print('Sunday            1')
+            print('Monday            2')
+            print('Tuesday           3')
+            print('Wednesday         4')
+            print('Thursday          5')
+            print('Friday            6')
+            print('Saturday          7')
             choiceDay = input('\nYour choice: ')
             if choiceDay in ['1', '2', '3', '4', '5', '6', '7']:
                 if choiceDay == '1':
-                    period = timetable[chooseTime()].replace('*', '8')
-                    slots.append(period)
-                    break
+                    period = timetable.replace(
+                        '#', str(chooseTime())).replace('*', '8')
+                    if period in slots:
+                        print("\nDuplicate slots found.")
+                        continue
+                    else:
+                        slots.append(period)
+                        break
                 else:
-                    period = timetable[chooseTime()].replace('*', choiceDay)
-                    slots.append(period)
-                    break
+                    period = timetable.replace(
+                        '#', str(chooseTime())).replace('*', choiceDay)
+                    if period in slots:
+                        print("\nDuplicate slots found.")
+                        continue
+                    else:
+                        slots.append(period)
+                        break
             else:
                 print("\nInvalid choice.")
                 continue
-    slots = [i for n, i in enumerate(slots) if i not in slots[:n]]
     return slots
 
 
@@ -85,6 +80,16 @@ def Booking():
 
     user = str(input('Username: '))
     password = str(input('Password: '))
+    while True:
+        ok = str(input('Ready. Do you want to book? (y/n): '))
+        if ok == 'y':
+            break
+        elif ok == 'n':
+            print('\nAborted.')
+            return
+        else:
+            print("\nInvalid choice.")
+            continue
     browser = webdriver.Edge()
     browser.get("http://extranet.oppilastalo.fi/")
     browser.find_element_by_xpath(
@@ -94,6 +99,13 @@ def Booking():
     browser.find_element_by_xpath(
         '/html/body/div/form/table/tbody/tr[5]/td[1]/input').click()
     sleep(3)
+    try:
+        browser.find_element_by_xpath('/html/body/center/div[1]')
+    except Exception:
+        pass
+    else:
+        print("\nIncorrect password.")
+        return
     week = 0
     while week <= weeks:
         for i in range(len(final)):
