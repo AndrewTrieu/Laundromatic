@@ -7,6 +7,11 @@ except ImportError:
 from time import sleep
 timetable = '/html/body/blockquote/table/tbody/tr[#]/td[*]/input'
 
+# /html/body/blockquote/table/tbody/tr[3]/td[2]/input
+# /html/body/blockquote/table/tbody/tr[3]/td[3]/input
+# /html/body/blockquote/table/tbody/tr[4]/td[2]/input
+# /html/body/blockquote/table/tbody/tr[17]/td[2]/input
+
 
 def chooseTime():
     print('\n Choose a time:')
