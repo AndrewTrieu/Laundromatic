@@ -19,87 +19,28 @@ class App(tk.Tk):
         self.title(
             'Automatic laundry reservation for Lahden Talot student residents')
         self.resizable(0, 0)
+        self.browser = None
 
-        def execute():
-            confirm['state'] = 'disabled'
-            for i in range(15):
-                for j in range(7):
-                    self.inventory[i][j]['state'] = 'disabled'
-            start_button['state'] = 'disabled'
-            confirm['text'] = 'Working...'
+        # status bar
+        status = tk.Text(self, height=1, width=50)
+        status.grid(column=0, row=21,
+                    padx=5, pady=5, columnspan=8)
+        status.tag_configure("center", justify='center')
+        status.insert(tk.END, "READY")
+        status.tag_add("center", 1.0, "end")
+
+        def change_status(message):
             status.delete(1.0, tk.END)
-            status.insert(tk.END, "Logging in...")
+            status.insert(tk.END, message)
             status.tag_add("center", 1.0, "end")
-            browser = webdriver.Edge()
-            try:
-                browser.get("http://extranet.oppilastalo.fi/")
-            except Exception:
-                status.delete(1.0, tk.END)
-                status.insert(tk.END, "Connection error.")
-                status.tag_add("center", 1.0, "end")
-                confirm['text'] = "Error"
-                return
-            browser.find_element(By.XPATH,
-                                 '/html/body/div/form/table/tbody/tr[3]/td[2]/input').send_keys(self.username)
-            browser.find_element(By.XPATH,
-                                 '/html/body/div/form/table/tbody/tr[4]/td[2]/input').send_keys(self.password)
-            browser.find_element(By.XPATH,
-                                 '/html/body/div/form/table/tbody/tr[5]/td[1]/input').click()
-            sleep(2)
-            try:
-                browser.find_element(By.XPATH, '/html/body/center/div[1]')
-            except Exception:
+
+        def next_week(week):
+            if week == 0:
                 pass
             else:
-                status.delete(1.0, tk.END)
-                status.insert(
-                    tk.END, "Incorrect username or password.")
-                status.tag_add("center", 1.0, "end")
-                confirm['text'] = "Error"
-                return
-            status.delete(1.0, tk.END)
-            status.insert(
-                tk.END, "Logged in. Navigating to laundry reservation...")
-            status.tag_add("center", 1.0, "end")
-            while self.week <= self.num:
-                sleep(5)
-                if self.week == 0:
-                    pass
-                else:
-                    for j in range(self.week):
-                        browser.find_element(
-                            By.XPATH, '/html/body/blockquote/table/tbody/tr[1]/td[7]/input').click()
-                        sleep(5)
-                        print("Clicking next week")
-                for i in range(len(self.selected)):
-                    browser.find_element(By.XPATH,
-                                         '/html/body/code/a[4]').click()
-                    status.delete(1.0, tk.END)
-                    status.insert(tk.END, "Booking...")
-                    status.tag_add("center", 1.0, "end")
-                    browser.find_element(By.XPATH, self.path.format(
-                        self.selected[i][0]+3, self.selected[i][1]+2)).click()
-                    sleep(2)
-                    print("Trying to book")
-                    try:
-                        browser.find_element(By.XPATH,
-                                             '/html/body/blockquote/submenu/blockquote/input[1]').click()
-                        sleep(2)
-                        print("Booking successful")
-                        status.delete(1.0, tk.END)
-                        status.insert(
-                            tk.END, "Booked a slot successfully.")
-                        status.tag_add("center", 1.0, "end")
-                    except Exception:
-                        status.delete(
-                            1.0, tk.END)
-                        status.insert(
-                            tk.END, "The slot is not available.")
-                        status.tag_add("center", 1.0, "end")
-                        print("Booking failed")
-                        sleep(5)
-                        continue
-                self.week += 1
+                for j in range(week):
+                    self.browser.find_element(
+                        By.XPATH, '/html/body/blockquote/table/tbody/tr[1]/td[7]/input').click()
 
         # blank 3rd row
         for i in range(7):
@@ -140,20 +81,6 @@ class App(tk.Tk):
         num_entry.grid(column=6, row=1, sticky=tk.W,
                        padx=5, pady=5)
 
-        # status bar
-        status = tk.Text(self, height=1, width=50)
-        status.grid(column=0, row=21,
-                    padx=5, pady=5, columnspan=8)
-        status.tag_configure("center", justify='center')
-        status.insert(tk.END, "READY")
-        status.tag_add("center", 1.0, "end")
-
-        # confirm button
-        confirm = tk.Button(self, text="Confirm", bg="yellow", command=execute)
-        confirm['state'] = 'disabled'
-        confirm.grid(column=0, row=22,
-                     padx=5, pady=5, columnspan=8)
-
         # each time slot has a button
 
         def book(i, j):
@@ -187,9 +114,7 @@ class App(tk.Tk):
             username_entry.delete(0, 'end')
             password_entry.delete(0, 'end')
             num_entry.delete(0, 'end')
-            status.delete(1.0, tk.END)
-            status.insert(tk.END, "READY!")
-            status.tag_add("center", 1.0, "end")
+            change_status("READY")
             confirm['text'] = 'Confirm'
             confirm['state'] = 'disabled'
             start_button['state'] = 'normal'
@@ -200,36 +125,78 @@ class App(tk.Tk):
         def start():
             self.username = username_entry.get()
             self.password = password_entry.get()
-            self.num = int(num_entry.get())
-
-        def start():
-            self.username = username_entry.get()
-            self.password = password_entry.get()
             try:
                 self.num = int(num_entry.get())
             except ValueError:
-                status.delete(1.0, tk.END)
-                status.insert(tk.END, "Invalid number of weeks!")
-                status.tag_add("center", 1.0, "end")
+                change_status("Please enter a valid number!")
                 return
             if self.username == '' or self.password == '' or self.num == 0:
-                status.delete(1.0, tk.END)
-                status.insert(tk.END, "Please fill in all the fields!")
-                status.tag_add("center", 1.0, "end")
+                change_status("Please fill in all the fields!")
             elif len(self.selected) == 0:
-                status.delete(1.0, tk.END)
-                status.insert(tk.END, "Please select at least one slot!")
-                status.tag_add("center", 1.0, "end")
+                change_status("Please select at least one time slot!")
             else:
                 confirm['state'] = 'normal'
-                status.delete(1.0, tk.END)
-                status.insert(tk.END, "Please confirm your booking!")
-                status.tag_add("center", 1.0, "end")
+                change_status("Please confirm your booking!")
         start_button = tk.Button(
             self, text="START", command=start, bg='blue')
         start_button.grid(column=5, row=2, sticky=tk.W, padx=5, pady=5)
 
-    # sticky=tk.N+tk.E+tk.S+tk.W
+        def execute():
+            self.browser = webdriver.Chrome()
+            confirm['state'] = 'disabled'
+            for i in range(15):
+                for j in range(7):
+                    self.inventory[i][j]['state'] = 'disabled'
+            start_button['state'] = 'disabled'
+            confirm['text'] = 'Working...'
+            change_status("Logging in...")
+            try:
+                self.browser.get("http://extranet.oppilastalo.fi/")
+            except Exception:
+                change_status("Connection error.")
+                confirm['text'] = "Error"
+                return
+            self.browser.find_element(By.XPATH,
+                                      '/html/body/div/form/table/tbody/tr[3]/td[2]/input').send_keys(self.username)
+            self.browser.find_element(By.XPATH,
+                                      '/html/body/div/form/table/tbody/tr[4]/td[2]/input').send_keys(self.password)
+            self.browser.find_element(By.XPATH,
+                                      '/html/body/div/form/table/tbody/tr[5]/td[1]/input').click()
+            try:
+                self.browser.find_element(By.XPATH, '/html/body/center/div[1]')
+            except Exception:
+                pass
+            else:
+                change_status("Wrong username or password.")
+                confirm['text'] = "Error"
+                return
+            change_status("Logged in.")
+            self.browser.find_element(By.XPATH,
+                                      '/html/body/code/a[4]').click()
+            while self.week < self.num:
+                for i in range(len(self.selected)):
+                    change_status("Booking a slot...")
+                    try:
+                        self.browser.find_element(By.XPATH, self.path.format(
+                            self.selected[i][0]+3, self.selected[i][1]+2)).click()
+                        self.browser.find_element(By.XPATH,
+                                                  '/html/body/blockquote/submenu/blockquote/input[1]').click()
+                        change_status("Booking successful.")
+                        self.browser.find_element(By.XPATH,
+                                                  '/html/body/code/a[4]').click()
+                        next_week(self.week)
+                    except Exception:
+                        change_status("Booking failed.")
+                        continue
+                self.week += 1
+                next_week(1)
+            self.browser.close()
+
+        # confirm button
+        confirm = tk.Button(self, text="Confirm", bg="yellow", command=execute)
+        confirm['state'] = 'disabled'
+        confirm.grid(column=0, row=22,
+                     padx=5, pady=5, columnspan=8)
 
 
 if __name__ == "__main__":
